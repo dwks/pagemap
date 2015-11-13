@@ -26,10 +26,8 @@ $ ./pagemap 11405 0x400000 0x406000
 0x405000           : pfn c16ef            soft-dirty 0 file/shared 1 swapped 0 present 1
 
 
-### Example 2: print all pages for given process (using bash variable $$ to find pid)
+### Example 2: print all pages for given process (using bash variable $$ to find bash's pid)
 
-$ cat &
-[1] 11405
 $ ./pagemap2 $$ | grep '^0x40'
 0x400000           : pfn c1719            soft-dirty 0 file/shared 1 swapped 0 present 1 library /bin/bash
 0x401000           : pfn c1718            soft-dirty 0 file/shared 1 swapped 0 present 1 library /bin/bash
