@@ -1,0 +1,113 @@
+Userspace tool to map virtual page addresses to physical addresses. Based
+on the /proc/pid/pagemap interface, described in kernel docs (pagemap.txt):
+https://www.kernel.org/doc/Documentation/vm/pagemap.txt
+
+See also linux/tools/vm/page-types.c for a similar tool that generates page
+statistics (must be run as root, unlike this tool).
+
+This package includes the following tools:
+- pagemap: prints physical pages for a given virtual address range
+- pagemap2: parses /proc/pid/maps and shows all virtual->physical mappings
+- classify.sh: prints pages in common between multiple processes
+
+Examples follow.
+
+
+### Example 1: print specific page ranges for a given process
+
+$ cat &
+[1] 11405
+$ ./pagemap 11405 0x400000 0x406000
+0x400000           : pfn c1719            soft-dirty 0 file/shared 1 swapped 0 present 1
+0x401000           : pfn c1718            soft-dirty 0 file/shared 1 swapped 0 present 1
+0x402000           : pfn c1717            soft-dirty 0 file/shared 1 swapped 0 present 1
+0x403000           : pfn c1716            soft-dirty 0 file/shared 1 swapped 0 present 1
+0x404000           : pfn c171a            soft-dirty 0 file/shared 1 swapped 0 present 1
+0x405000           : pfn c16ef            soft-dirty 0 file/shared 1 swapped 0 present 1
+
+
+### Example 2: print all pages for given process (using bash variable $$ to find pid)
+
+$ cat &
+[1] 11405
+$ ./pagemap2 $$ | grep '^0x40'
+0x400000           : pfn c1719            soft-dirty 0 file/shared 1 swapped 0 present 1 library /bin/bash
+0x401000           : pfn c1718            soft-dirty 0 file/shared 1 swapped 0 present 1 library /bin/bash
+0x402000           : pfn c1717            soft-dirty 0 file/shared 1 swapped 0 present 1 library /bin/bash
+0x403000           : pfn c1716            soft-dirty 0 file/shared 1 swapped 0 present 1 library /bin/bash
+0x404000           : pfn c171a            soft-dirty 0 file/shared 1 swapped 0 present 1 library /bin/bash
+0x405000           : pfn c16ef            soft-dirty 0 file/shared 1 swapped 0 present 1 library /bin/bash
+0x406000           : pfn 0                soft-dirty 0 file/shared 0 swapped 0 present 0 library /bin/bash
+0x407000           : pfn c171d            soft-dirty 0 file/shared 1 swapped 0 present 1 library /bin/bash
+0x408000           : pfn 0                soft-dirty 0 file/shared 0 swapped 0 present 0 library /bin/bash
+0x409000           : pfn 0                soft-dirty 0 file/shared 0 swapped 0 present 0 library /bin/bash
+0x40a000           : pfn c153d            soft-dirty 0 file/shared 1 swapped 0 present 1 library /bin/bash
+0x40b000           : pfn 0                soft-dirty 0 file/shared 0 swapped 0 present 0 library /bin/bash
+0x40c000           : pfn 0                soft-dirty 0 file/shared 0 swapped 0 present 0 library /bin/bash
+0x40d000           : pfn c16b5            soft-dirty 0 file/shared 1 swapped 0 present 1 library /bin/bash
+0x40e000           : pfn c150a            soft-dirty 0 file/shared 1 swapped 0 present 1 library /bin/bash
+0x40f000           : pfn c1d5a            soft-dirty 0 file/shared 1 swapped 0 present 1 library /bin/bash
+
+
+### Example 3: print all pages for multiple processes
+
+$ ./pagemap2 11437 11564 | grep -E '^0x40|==='
+=== Maps for pid 11437
+0x400000           : pfn c1d6d            soft-dirty 0 file/shared 1 swapped 0 present 1 library /bin/cat
+0x401000           : pfn c1d75            soft-dirty 0 file/shared 1 swapped 0 present 1 library /bin/cat
+0x402000           : pfn c1d76            soft-dirty 0 file/shared 1 swapped 0 present 1 library /bin/cat
+0x403000           : pfn 0                soft-dirty 0 file/shared 0 swapped 0 present 0 library /bin/cat
+0x404000           : pfn c1d69            soft-dirty 0 file/shared 1 swapped 0 present 1 library /bin/cat
+0x405000           : pfn c1d53            soft-dirty 0 file/shared 1 swapped 0 present 1 library /bin/cat
+0x406000           : pfn 0                soft-dirty 0 file/shared 0 swapped 0 present 0 library /bin/cat
+0x407000           : pfn 0                soft-dirty 0 file/shared 0 swapped 0 present 0 library /bin/cat
+0x408000           : pfn c2332            soft-dirty 0 file/shared 1 swapped 0 present 1 library /bin/cat
+0x409000           : pfn c2331            soft-dirty 0 file/shared 1 swapped 0 present 1 library /bin/cat
+0x40a000           : pfn 0                soft-dirty 0 file/shared 0 swapped 0 present 0 library /bin/cat
+=== Maps for pid 11564
+0x400000           : pfn c1d6d            soft-dirty 0 file/shared 1 swapped 0 present 1 library /bin/cat
+0x401000           : pfn c1d75            soft-dirty 0 file/shared 1 swapped 0 present 1 library /bin/cat
+0x402000           : pfn c1d76            soft-dirty 0 file/shared 1 swapped 0 present 1 library /bin/cat
+0x403000           : pfn 0                soft-dirty 0 file/shared 0 swapped 0 present 0 library /bin/cat
+0x404000           : pfn c1d69            soft-dirty 0 file/shared 1 swapped 0 present 1 library /bin/cat
+0x405000           : pfn c1d53            soft-dirty 0 file/shared 1 swapped 0 present 1 library /bin/cat
+0x406000           : pfn 0                soft-dirty 0 file/shared 0 swapped 0 present 0 library /bin/cat
+0x407000           : pfn 0                soft-dirty 0 file/shared 0 swapped 0 present 0 library /bin/cat
+0x408000           : pfn c2332            soft-dirty 0 file/shared 1 swapped 0 present 1 library /bin/cat
+0x409000           : pfn c2331            soft-dirty 0 file/shared 1 swapped 0 present 1 library /bin/cat
+0x40a000           : pfn 0                soft-dirty 0 file/shared 0 swapped 0 present 0 library /bin/cat
+
+
+### Example 4: show pages in common between two processes
+
+$ ./classify.sh 11437 11564 | grep cat
+c1d53    => 0x405000           : pfn c1d53            soft-dirty 0 file/shared 1 swapped 0 present 1 library /bin/cat
+c1d53    => 0x405000           : pfn c1d53            soft-dirty 0 file/shared 1 swapped 0 present 1 library /bin/cat
+c1d69    => 0x404000           : pfn c1d69            soft-dirty 0 file/shared 1 swapped 0 present 1 library /bin/cat
+c1d69    => 0x404000           : pfn c1d69            soft-dirty 0 file/shared 1 swapped 0 present 1 library /bin/cat
+c1d6d    => 0x400000           : pfn c1d6d            soft-dirty 0 file/shared 1 swapped 0 present 1 library /bin/cat
+c1d6d    => 0x400000           : pfn c1d6d            soft-dirty 0 file/shared 1 swapped 0 present 1 library /bin/cat
+c1d75    => 0x401000           : pfn c1d75            soft-dirty 0 file/shared 1 swapped 0 present 1 library /bin/cat
+c1d75    => 0x401000           : pfn c1d75            soft-dirty 0 file/shared 1 swapped 0 present 1 library /bin/cat
+c1d76    => 0x402000           : pfn c1d76            soft-dirty 0 file/shared 1 swapped 0 present 1 library /bin/cat
+c1d76    => 0x402000           : pfn c1d76            soft-dirty 0 file/shared 1 swapped 0 present 1 library /bin/cat
+c2331    => 0x409000           : pfn c2331            soft-dirty 0 file/shared 1 swapped 0 present 1 library /bin/cat
+c2331    => 0x409000           : pfn c2331            soft-dirty 0 file/shared 1 swapped 0 present 1 library /bin/cat
+c2332    => 0x408000           : pfn c2332            soft-dirty 0 file/shared 1 swapped 0 present 1 library /bin/cat
+c2332    => 0x408000           : pfn c2332            soft-dirty 0 file/shared 1 swapped 0 present 1 library /bin/cat
+$ ./classify.sh 11437 11564 | grep libc | head
+14da     => 0x7fcddf6a4000     : pfn 14da             soft-dirty 0 file/shared 1 swapped 0 present 1 library /lib/x86_64-linux-gnu/libc-2.19.so
+14da     => 0x7f6e9784a000     : pfn 14da             soft-dirty 0 file/shared 1 swapped 0 present 1 library /lib/x86_64-linux-gnu/libc-2.19.so
+14db     => 0x7fcddf6a5000     : pfn 14db             soft-dirty 0 file/shared 1 swapped 0 present 1 library /lib/x86_64-linux-gnu/libc-2.19.so
+14db     => 0x7f6e9784b000     : pfn 14db             soft-dirty 0 file/shared 1 swapped 0 present 1 library /lib/x86_64-linux-gnu/libc-2.19.so
+15c1     => 0x7fcddf766000     : pfn 15c1             soft-dirty 0 file/shared 1 swapped 0 present 1 library /lib/x86_64-linux-gnu/libc-2.19.so
+15c1     => 0x7f6e9790c000     : pfn 15c1             soft-dirty 0 file/shared 1 swapped 0 present 1 library /lib/x86_64-linux-gnu/libc-2.19.so
+15c2     => 0x7fcddf767000     : pfn 15c2             soft-dirty 0 file/shared 1 swapped 0 present 1 library /lib/x86_64-linux-gnu/libc-2.19.so
+15c2     => 0x7f6e9790d000     : pfn 15c2             soft-dirty 0 file/shared 1 swapped 0 present 1 library /lib/x86_64-linux-gnu/libc-2.19.so
+15c3     => 0x7fcddf768000     : pfn 15c3             soft-dirty 0 file/shared 1 swapped 0 present 1 library /lib/x86_64-linux-gnu/libc-2.19.so
+15c3     => 0x7f6e9790e000     : pfn 15c3             soft-dirty 0 file/shared 1 swapped 0 present 1 library /lib/x86_64-linux-gnu/libc-2.19.so
+
+Here, each pair of lines shows the same physical page mapped into two processes
+(the first line is from the first process, the second from the second process).
+Note that the virtual address may be the same, as for /bin/cat's code pages, or
+different, as for libc mapped to different base addresses.
