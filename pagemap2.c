@@ -1,4 +1,5 @@
 #define _POSIX_C_SOURCE 200809L
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -9,11 +10,11 @@
 
 #define FIND_LIB_NAME
 
-static void print_page(unsigned long address, unsigned long data,
+static void print_page(uint64_t address, uint64_t data,
     const char *lib_name) {
 
-    printf("0x%-16lx : pfn %-16lx soft-dirty %d file/shared %d "
-        "swapped %d present %d library %s\n",
+    printf("0x%-16lx : pfn %-16lx soft-dirty %ld file/shared %ld "
+        "swapped %ld present %ld library %s\n",
         address,
         data & 0x7fffffffffffff,
         (data >> 55) & 1,
@@ -23,12 +24,12 @@ static void print_page(unsigned long address, unsigned long data,
         lib_name);
 }
 
-void handle_virtual_range(int pagemap, unsigned long start_address,
-    unsigned long end_address, const char *lib_name) {
+void handle_virtual_range(int pagemap, uint64_t start_address,
+    uint64_t end_address, const char *lib_name) {
 
-    for(unsigned long i = start_address; i < end_address; i += 0x1000) {
-        unsigned long data;
-        unsigned long index = (i / PAGE_SIZE) * sizeof(data);
+    for(uint64_t i = start_address; i < end_address; i += 0x1000) {
+        uint64_t data;
+        uint64_t index = (i / PAGE_SIZE) * sizeof(data);
         if(pread(pagemap, &data, sizeof(data), index) != sizeof(data)) {
             if(errno) perror("pread");
             break;
@@ -58,7 +59,7 @@ void parse_maps(const char *maps_file, const char *pagemap_file) {
         length += offset;
 
         for(size_t i = offset; i < (size_t)length; i ++) {
-            unsigned long low = 0, high = 0;
+            uint64_t low = 0, high = 0;
             if(buffer[i] == '\n' && i) {
                 size_t x = i - 1;
                 while(x && buffer[x] != '\n') x --;
@@ -125,9 +126,9 @@ void process_pid(pid_t pid) {
     char maps_file[BUFSIZ];
     char pagemap_file[BUFSIZ];
     snprintf(maps_file, sizeof(maps_file),
-        "/proc/%lu/maps", (unsigned long)pid);
+        "/proc/%lu/maps", (uint64_t)pid);
     snprintf(pagemap_file, sizeof(pagemap_file),
-        "/proc/%lu/pagemap", (unsigned long)pid);
+        "/proc/%lu/pagemap", (uint64_t)pid);
 
     parse_maps(maps_file, pagemap_file);
 }

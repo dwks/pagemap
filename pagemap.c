@@ -1,4 +1,5 @@
 #define _POSIX_C_SOURCE 200809L
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -7,9 +8,9 @@
 
 #define PAGE_SIZE 0x1000
 
-static void print_page(unsigned long address, unsigned long data) {
-    printf("0x%-16lx : pfn %-16lx soft-dirty %d file/shared %d "
-        "swapped %d present %d\n",
+static void print_page(uint64_t address, uint64_t data) {
+    printf("0x%-16lx : pfn %-16lx soft-dirty %ld file/shared %ld "
+        "swapped %ld present %ld\n",
         address,
         data & 0x7fffffffffffff,
         (data >> 55) & 1,
@@ -40,12 +41,12 @@ int main(int argc, char *argv[]) {
         return 1;
     }
 
-    unsigned long start_address = strtoul(argv[2], NULL, 0);
-    unsigned long end_address = strtoul(argv[3], NULL, 0);
+    uint64_t start_address = strtoul(argv[2], NULL, 0);
+    uint64_t end_address = strtoul(argv[3], NULL, 0);
 
-    for(unsigned long i = start_address; i < end_address; i += 0x1000) {
-        unsigned long data;
-        unsigned long index = (i / PAGE_SIZE) * sizeof(data);
+    for(uint64_t i = start_address; i < end_address; i += 0x1000) {
+        uint64_t data;
+        uint64_t index = (i / PAGE_SIZE) * sizeof(data);
         if(pread(fd, &data, sizeof(data), index) != sizeof(data)) {
             perror("pread");
             break;
