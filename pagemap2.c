@@ -66,7 +66,7 @@ void parse_maps(const char *maps_file, const char *pagemap_file) {
                 if(buffer[x] == '\n') x ++;
                 size_t beginning = x;
 
-                while(buffer[x] != '-' && x < sizeof buffer) {
+                while(buffer[x] != '-' && x+1 < sizeof buffer) {
                     char c = buffer[x ++];
                     low *= 16;
                     if(c >= '0' && c <= '9') {
@@ -78,10 +78,10 @@ void parse_maps(const char *maps_file, const char *pagemap_file) {
                     else break;
                 }
 
-                while(buffer[x] != '-' && x < sizeof buffer) x ++;
+                while(buffer[x] != '-' && x+1 < sizeof buffer) x ++;
                 if(buffer[x] == '-') x ++;
 
-                while(buffer[x] != ' ' && x < sizeof buffer) {
+                while(buffer[x] != ' ' && x+1 < sizeof buffer) {
                     char c = buffer[x ++];
                     high *= 16;
                     if(c >= '0' && c <= '9') {
@@ -97,12 +97,12 @@ void parse_maps(const char *maps_file, const char *pagemap_file) {
 #ifdef FIND_LIB_NAME
                 for(int field = 0; field < 4; field ++) {
                     x ++;  // skip space
-                    while(buffer[x] != ' ' && x < sizeof buffer) x ++;
+                    while(buffer[x] != ' ' && x+1 < sizeof buffer) x ++;
                 }
-                while(buffer[x] == ' ' && x < sizeof buffer) x ++;
+                while(buffer[x] == ' ' && x+1 < sizeof buffer) x ++;
 
                 size_t y = x;
-                while(buffer[y] != '\n' && y < sizeof buffer) y ++;
+                while(buffer[y] != '\n' && y+1 < sizeof buffer) y ++;
                 buffer[y] = 0;
 
                 lib_name = buffer + x;
